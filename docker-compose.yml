@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  sqldatabase:
+    image: mariadb:11
+    environment:
+      - MARIADB_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+      - MARIADB_DATABASE=logistico
+      - MARIADB_USER=${SQL_USER}
+      - MARIADB_PASSWORD=${SQL_PASSWORD}
+    volumes:
+      - sqldata:/var/lib/mysql
+      - ./docker/sql/init:/docker-entrypoint-initdb.d
+    restart: always
+
+  nosqldatabase:
+    image: mongo:6.0
+    environment:
+      - MONGO_INITDB_DATABASE=logistico_history
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - mongodata:/data/db
+    restart: always
+
+  broker:
+    image: rabbitmq:3.12-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}
+    restart: always
+
+  restapi:
+    build:
+      context: ./RESTApi
+      dockerfile: ../docker/restapi.Dockerfile
+    depends_on:
+      - sqldatabase
+      - nosqldatabase
+    restart: on-failure
+
+  wsapi:
+    image: maven:3-eclipse-temurin-21
+    working_dir: /usr/src/app
+    volumes:
+      - ./RealTimeAPI:/usr/src/app
+      - maven-cache:/root/.m2
+      - wsapi-target:/usr/src/app/target
+    command: ["mvn", "spring-boot:run"]
+    depends_on:
+      - sqldatabase
+      - nosqldatabase
+      - broker
+    restart: on-failure
+
+  webapp:
+    image: node:22-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - ./app:/usr/src/app
+      - webapp-build:/usr/src/app/build
+    command: ["npm", "run", "build"]
+    profiles: ["builder"]
+
+  front:
+    build:
+      context: ./vendorConfigurations
+      dockerfile: ./nginx.Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - restapi
+      - wsapi
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_HOST=sqldatabase
+    ports:
+      - "8081:80"
+    profiles: ["dev-tool"]
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=nosqldatabase
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "8082:8081"
+    profiles: ["dev-tool"]
+
+volumes:
+  sqldata:
+  mongodata:
+  maven-cache:
+  wsapi-target:
+  webapp-build:
