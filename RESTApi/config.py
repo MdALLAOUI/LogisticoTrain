@@ -20,9 +20,9 @@ SQLDB_SETTINGS = {
 # MONGODB HISOTRY DB CONNECTION CONFIGURATION
 MONGODB_SETTINGS = {
     "db": "history-db",  # Mandatory
-    "host": "localhost",  # default localhost
+    "host": "nosqldatabase",  
     "port": 27017,  # default 27017
-    "username": "mongoUsr",  # Optional
-    "password": "mongoPass",  # Optional
+    "username": "mongoRoot",  # Optional
+    "password": open('/run/secrets/mongo-root-password', encoding='utf-8').read().strip(),  # Optional
     "authentication_source": "admin"  # default is the db
 }
