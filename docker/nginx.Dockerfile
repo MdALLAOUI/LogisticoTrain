@@ -1,3 +1,3 @@
 FROM nginx:alpine
 
-COPY vendorConfigurations/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY vendorConfigurations/nginx.conf /etc/nginx/nginx.conf

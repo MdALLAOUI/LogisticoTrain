@@ -123,8 +123,8 @@ services:
 
   front:
     build:
-      context: ./docker
-      dockerfile: ./nginx.Dockerfile
+      context: .
+      dockerfile: ./docker/nginx.Dockerfile
     ports:
       - "80:80"
     depends_on:
