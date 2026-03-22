@@ -126,12 +126,12 @@ services:
       - front_net
 
   webapp:
-    image: node:22-alpine
+    image: node:22
     working_dir: /usr/src/app
     volumes:
       - ./app:/usr/src/app
       - webapp-build:/usr/src/app/build
-    command: ["npm", "run", "build"]
+    command: ["sh", "-c", "npm install && npm run build"]
     profiles: ["builder"]
 
   front:
@@ -154,6 +154,8 @@ services:
       start_period: 60s
     networks:
       - front_net
+    volumes:
+      - webapp-build:/var/www/app:ro
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
