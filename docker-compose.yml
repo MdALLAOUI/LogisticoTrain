@@ -104,7 +104,7 @@ services:
       - rabbitmq-user-password
       - wsapi-config
     volumes:
-      - ./RealtimeAPI:/usr/src/app:ro
+      - ./RealtimeAPI:/usr/src/app
       - maven-cache:/root/.m2
       - wsapi-target:/usr/src/app/target
       - type: bind
@@ -130,7 +130,7 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./app:/usr/src/app
-      - webapp-build:/usr/src/app/build:ro
+      - webapp-build:/usr/src/app/build
     command: ["sh", "-c", "npm install && npm run build"]
     profiles: ["builder"]
 
