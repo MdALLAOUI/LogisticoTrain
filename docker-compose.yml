@@ -36,6 +36,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 20s
+    networks:
+      - db_net
 
 
   nosqldatabase:
@@ -55,6 +57,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 20s
+    networks:
+      - db_net
 
   broker:
     build:
@@ -71,6 +75,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 20s
+    networks:
+      - broker_net
 
   restapi:
     build:
@@ -85,6 +91,9 @@ services:
       - mariadb-user-password
       - mongo-root-password
     restart: on-failure
+    networks:
+      - db_net
+      - front_net
 
   wsapi:
     image: maven:3-eclipse-temurin-21
@@ -111,6 +120,10 @@ services:
       broker:
         condition: service_healthy
     restart: on-failure
+    networks:
+      - db_net
+      - broker_net
+      - front_net
 
   webapp:
     image: node:22-alpine
@@ -139,6 +152,8 @@ services:
       timeout : 10s
       retries: 10
       start_period: 60s
+    networks:
+      - front_net
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -150,16 +165,41 @@ services:
     secrets:
       - mariadb-user-password
     ports:
-      - "8081:80"
+      - "127.0.0.1:8081:80"
     profiles: ["dev-tool"]
+    networks:
+      - db_net
 
   mongo-express:
     image: mongo-express
     env_file:
     - ./secrets/mongo-express.env
     ports:
-      - "8082:8081"
+      - "127.0.0.1:8082:8081"
     profiles: ["dev-tool"]
+    networks:
+      - db_net
+
+networks:
+  db_net:          
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16  
+          gateway: 172.21.0.1
+  broker_net:          
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16  
+          gateway: 172.20.0.1
+  front_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+          gateway: 172.22.0.1
+
 
 volumes:
   sqldata:
