@@ -28,7 +28,7 @@ services:
       - mariadb-user-password
     volumes:
       - sqldata:/var/lib/mysql
-      - ./docker/sql/init:/docker-entrypoint-initdb.d
+      - ./docker/sql/init:/docker-entrypoint-initdb.d:ro
     restart: always
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck.sh", "--connect"]
