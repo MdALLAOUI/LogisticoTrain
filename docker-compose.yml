@@ -128,6 +128,9 @@ services:
   webapp:
     image: node:22
     working_dir: /usr/src/app
+    environment:
+      - API_EP_URI=http://localhost/api/rest
+      - RT_API_EP_URI=http://localhost/wsapi
     volumes:
       - ./app:/usr/src/app
       - webapp-build:/usr/src/app/build
